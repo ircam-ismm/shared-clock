@@ -60,44 +60,57 @@ server.stateManager.registerSchema('transport', transport);
       };
     });
 
-
+    const transport = await server.stateManager.create('transport');
     const sync = server.pluginManager.get('sync');
-    const transportEventQueue = new TransportEventQueue();
+    const clockEventQueue = new TransportEventQueue();
+    const preRollEventQueue = new TransportEventQueue();
 
     server.stateManager.registerUpdateHook('transport', (updates, currentValues) => {
       if (updates.command) {
+        const { command } = updates;
+        const { enablePreRoll, preRollDuration } = currentValues;
+        const applyAt = sync.getSyncTime() + 0.1;
+
         const event = {
-          type: updates.command,
-          time: sync.getSyncTime() + 0.1,
+          type: command,
+          time: applyAt,
         };
 
-        switch (updates.command) {
-          case 'start':
-            event.speed = 1;
-            break;
-          case 'pause':
-            event.speed = 0;
-            break;
-          case 'stop':
-            event.speed = 0;
-            event.position = 0;
-            break;
-          case 'seek':
-            event.position = updates.seekPosition;
-            break;
+        if (command === 'start') {
+          if (enablePreRoll) {
+            event.time += preRollDuration;
+          }
+        } else if (command === 'seek') {
+          event.position = updates.seekPosition || currentValues.seekPosition;
         }
 
-        const computedEvent = transportEventQueue.add(event);
-
+        const computedEvent = clockEventQueue.add(event);
+        // we really don't want to store null events as it breaks clients on reload
         if (computedEvent !== null) {
-          updates.transportEvent = computedEvent;
+          updates.clockEvent = computedEvent;
         }
+
+        if (computedEvent !== null && enablePreRoll && command === 'start') {
+          const events = [
+            {
+              type: 'start',
+              time: applyAt,
+            }, {
+              type: 'stop',
+              time: applyAt + preRollDuration,
+            }
+          ];
+
+          updates.preRollEvents = events.map(e => preRollEventQueue.add(e));
+        } else {
+          updates.preRollEvents = null;
+        }
+
       }
 
       return updates;
     });
 
-    const transport = await server.stateManager.create('transport');
 
     const playerExperience = new PlayerExperience(server, 'player');
     const controllerExperience = new ControllerExperience(server, 'controller');

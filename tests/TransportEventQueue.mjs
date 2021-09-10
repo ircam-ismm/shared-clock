@@ -1,11 +1,27 @@
-// const path = require('path');
-// const assert = require('chai').assert;
 import { assert } from 'chai';
-import { TransportEventQueue } from '../src/lib/transportedMixin.mjs';
+import { TransportEventQueue } from '../src/lib/transportedMixin.js';
 
 // @todo - review, things changed in between...
 
 describe('TransportEventQueue.enqeueEvent(event)', () => {
+  it.only(`test weirdness`, () => {
+    const queue = new TransportEventQueue();
+    const events = [
+      {
+        type: 'start',
+        time: 0,
+        speed: 1,
+      }, {
+        type: 'stop',
+        time: 2,
+        speed: 1,
+      }
+    ];
+
+    const result = events.map(e => preRollEventQueue.add(e));
+    console.log(result);
+  })
+
   it('should filter similar consecutive events', () => {
     const queue = new TransportEventQueue();
     const events = ['start', 'start', 'seek', 'seek', 'pause', 'stop', 'stop', 'seek', 'pause', 'pause', 'start', 'stop', 'stop'];
@@ -130,7 +146,7 @@ describe('TransportEventQueue.enqeueEvent(event)', () => {
     });
   });
 
-  it.only('should return event with proper estimation or null if discarded', () => {
+  it('should return event with proper estimation or null if discarded', () => {
     const queue = new TransportEventQueue();
 
     queue.add({

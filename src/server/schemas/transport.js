@@ -4,16 +4,26 @@ export default {
     default: 'stop',
     filterChange: false, // we want to be able to seek as many time as we want
   },
-  startPreRoll: {
-    type: 'float',
-    default: -10,
-  },
   seekPosition: {
     type: 'float',
     default: 0,
     filterChange: false,
   },
-  transportEvent: {
+  clockEvent: {
+    type: 'any',
+    default: null,
+    nullable: true,
+  },
+  enablePreRoll: {
+    type: 'boolean',
+    default: false,
+  },
+  preRollDuration: {
+    type: 'float',
+    default: 10,
+    min: 0,
+  },
+  preRollEvents: {
     type: 'any',
     default: null,
     nullable: true,

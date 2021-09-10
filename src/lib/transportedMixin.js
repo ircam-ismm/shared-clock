@@ -17,6 +17,10 @@
  * - if stop -> allow start, seek (but maybe allowing pause with current behavior is interesting too)
  */
 
+
+// @note - allow user defined events to be inserted in the cue
+// use-case - update some metronome bpm
+// --> maybe not the right to do that... to be tested with a real implementation
 export class TransportEventQueue {
   constructor() {
     this._queue = [null, null]; // init last and current to null
@@ -42,7 +46,7 @@ export class TransportEventQueue {
     const current = this.current;
 
     // cannot schedule event in the past
-    if (current && current.time >= event.time) {
+    if (current && current.time > event.time) {
       console.error(`[transportMixin] cannot schedule event in the past, aborting...`);
       return null;
     }
@@ -54,7 +58,7 @@ export class TransportEventQueue {
       } if (b === null & a !== null) {
         return 1;
       } else {
-        a.time <= b.time ? -1 : 1;
+        return a.time <= b.time ? -1 : 1;
       }
     });
 
@@ -84,7 +88,7 @@ export class TransportEventQueue {
 
     // @note - if this is the first element added (this.next) we use it as
     // reference instead of default values, allows to share computed events on
-    // the network and keep the timeline consistency
+    // the network and keep the timeline consistency at any point
     if (this.current) {
       origin = this.current;
     } else if (this.next) {
@@ -96,19 +100,39 @@ export class TransportEventQueue {
     let speed = (origin && origin.speed) || 0;
 
     this._queue.forEach((event, i) => {
-      // we don't want to add origin to itself
-      if (i < 2 || event === origin) { // never override last and current positions
+      if (i < 2) { // never override last and current positions
         return;
       }
 
       switch (event.type) {
         case 'start':
+          if (event !== origin) {
+            event.position = position + (event.time - time) * speed;
+          } else if (event === origin && !origin.hasOwnProperty('position')) {
+            event.position = 0;
+          }
+
+          event.speed = 1;
+          break;
         case 'pause':
-        // case 'stop':
-          event.position = position + (event.time - time) * speed;
+          if (event !== origin) {
+            event.position = position + (event.time - time) * speed;
+          } else if (event === origin && !origin.hasOwnProperty('position')) {
+            event.position = 0;
+          }
+
+          event.speed = 0;
+          break;
+        case 'stop':
+          event.position = 0;
+          event.speed = 0;
           break;
         case 'seek':
-          event.speed = speed;
+          if (event !== origin) {
+            event.speed = speed;
+          } else if (event === origin && !origin.hasOwnProperty('speed')) {
+            event.speed = 0;
+          }
           break;
       }
 
@@ -169,7 +193,7 @@ export class TransportEventQueue {
       }
 
       // ignore default last and current events
-      if (i === firstEventIndex && time < this._queue[i].time) { // first "real" event in queue
+      if (i === firstEventIndex && time < this._queue[i].time) { // only 1 "real" event in queue
         return Infinity;
       } else if (i === this._queue.length - 1) {
         targetEvent = this._queue[i];
@@ -334,6 +358,7 @@ export const transportedMixin = obj => {
 
         if (event.speed === 0) {
           if (this._eventQueue.next) {
+            console.log(this._eventQueue.next.type, this._eventQueue.next.time)
             return this._eventQueue.next.time;
           } else {
             return Infinity;
