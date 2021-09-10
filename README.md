@@ -1,28 +1,23 @@
-# `soundworks-template`
+# `shared-clock`
 
-> Project template for developing [*soundworks*](https://github.com/collective-soundworks/soundworks/) applications.
+## Install and Run
 
-_For a complete documentation of *soundworks*, please refer to [http://collective-soundworks.github.io](http://collective-soundworks.github.io)_
-
-## Creating a new application
-
-```sh
-git clone https://github.com/collective-soundworks/soundworks-template.git my-application
-cd my-application
-rm -Rf .git
+```
+git clone https://github.com/ircam-ismm/shared-clock.git
 npm install
 npm run dev
 ```
 
-## Internal tools
+## Run in production mode (port 80)
 
-### `@soundworks/template-build`
+```
+sudo PORT=80 npm run start
+```
 
-The [`@soundworks/template-build`](https://github.com/collective-soundworks/soundworks-template-build) package contains all the build scripts for the `soundworks-template`
+## Clients
 
-### `@soundworks/template-helpers`
-
-The [`@soundworks/template-helpers`](https://github.com/collective-soundworks/soundworks-template-helpers) package contains common helpers (views, etc.) shared by most the applications.
+- normal clients: `http://m.y.i.p/`
+- client with controls: `http://m.y.i.p/#controller`
 
 ## License
 
