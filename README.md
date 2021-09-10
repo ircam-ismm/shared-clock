@@ -21,17 +21,19 @@ sudo PORT=80 npm run start
 
 ## Todos
 
-- re-implement pre-roll
-- component for clock display
+[x] re-implement pre-roll
+[x] component for clock display
 
-- clean controls
-  + two editable number boxes with up/down buttons, replacing the slider
-  + only start / stop
+### controls
 
-- define some kind of score (cue, jump)
-- allow several different score
+[ ] seek: two editable number boxes with up/down buttons (min, sec)
+[ ] only start / stop ?
 
-- online edit score client
+### scores 
+
+[ ] define some kind of score (cue, jump)
+[ ] allow several different score
+[ ] online edit score client
 
 ## License
 

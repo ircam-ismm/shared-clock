@@ -7,7 +7,6 @@ import compile from 'template-literal';
 import pluginSyncFactory from '@soundworks/plugin-sync/server';
 
 import PlayerExperience from './PlayerExperience.js';
-import ControllerExperience from './ControllerExperience.js';
 
 import { TransportEventQueue } from '../lib/transportedMixin.js';
 
@@ -113,12 +112,10 @@ server.stateManager.registerSchema('transport', transport);
 
 
     const playerExperience = new PlayerExperience(server, 'player');
-    const controllerExperience = new ControllerExperience(server, 'controller');
 
     // start all the things
     await server.start();
     playerExperience.start();
-    controllerExperience.start();
 
   } catch (err) {
     console.error(err.stack);
