@@ -61,7 +61,7 @@ class PlayerExperience extends AbstractExperience {
   }
 
   render() {
-    const width = Math.min(window.innerWidth - 40, 400); // padding
+    const width = Math.min(window.innerWidth - 40, 614); // padding
 
     render(html`
       <div style="padding: 20px">
@@ -76,7 +76,7 @@ class PlayerExperience extends AbstractExperience {
                 preRollDuration - preRollPosition + 1 : 0
             }}"
             font-size="20"
-            twinkle="[0, 500]"
+            twinkle="[0, 0.5]"
             width="${width}"
           ></sc-clock>
           <sc-clock
@@ -86,58 +86,63 @@ class PlayerExperience extends AbstractExperience {
               return this.clock.getPositionAtTime(now);
             }}"
             font-size="20"
-            twinkle="[500, 10000]"
+            twinkle="[0.5, 1]"
             width="${width}"
           ></sc-clock>
         </div>
 
         ${this.hasControls ?
           html`
-            <div style="padding: 4px 0;">
-              <sc-button
-                value="start"
-                @input="${e => this.transport.set({ command: 'start' })}"
-              ></sc-button>
-              <sc-button
-                value="pause"
-                @input="${e => this.transport.set({ command: 'pause' })}"
-              ></sc-button>
-              <sc-button
-                value="stop"
-                @input="${e => this.transport.set({ command: 'stop' })}"
-              ></sc-button>
-            </div>
-            <!-- <hr /> -->
-            <div style="padding: 4px 0;">
-              <sc-text
-                readonly
-                value="seek"
-              ></sc-text>
-              <sc-number
-                value="${this.transport.get('seekPosition')}"
-                @change="${e => this.transport.set({
-                  command: 'seek',
-                  seekPosition: e.detail.value,
-                })}"
-              ></sc-number>
-              <sc-bang
-                @input="${e => this.transport.set({ command: 'seek' })}"
-              ></sc-bang>
-            </div>
-            <!-- <hr /> -->
-            <div style="padding-top: 4px 0;">
-              <sc-text
-                readonly
-                value="pre-roll"
-              ></sc-text>
-              <sc-toggle
-                .value="${this.transport.get('enablePreRoll')}"
-                @change="${e => this.transport.set({ enablePreRoll: e.detail.value })}"
-              ></sc-toggle>
-              <sc-number
-                value="${this.transport.get('preRollDuration')}"
-                @change="${e => this.transport.set({ preRollDuration: e.detail.value })}"
-              ></sc-number>
+            <div style="width: ${width}px; margin: 50px auto 0;">
+              <div style="padding: 4px 0;">
+                <sc-button
+                  style="margin-bottom: 4px"
+                  value="start"
+                  @input="${e => this.transport.set({ command: 'start' })}"
+                ></sc-button>
+                <sc-button
+                  style="margin-bottom: 4px"
+                  value="pause"
+                  @input="${e => this.transport.set({ command: 'pause' })}"
+                ></sc-button>
+                <sc-button
+                  style="margin-bottom: 4px"
+                  value="stop"
+                  @input="${e => this.transport.set({ command: 'stop' })}"
+                ></sc-button>
+              </div>
+              <!-- <hr /> -->
+              <div style="padding: 4px 0;">
+                <sc-text
+                  readonly
+                  value="seek"
+                ></sc-text>
+                <sc-number
+                  value="${this.transport.get('seekPosition')}"
+                  @change="${e => this.transport.set({
+                    command: 'seek',
+                    seekPosition: e.detail.value,
+                  })}"
+                ></sc-number>
+                <sc-bang
+                  @input="${e => this.transport.set({ command: 'seek' })}"
+                ></sc-bang>
+              </div>
+              <!-- <hr /> -->
+              <div style="padding-top: 4px 0;">
+                <sc-text
+                  readonly
+                  value="pre-roll"
+                ></sc-text>
+                <sc-toggle
+                  .value="${this.transport.get('enablePreRoll')}"
+                  @change="${e => this.transport.set({ enablePreRoll: e.detail.value })}"
+                ></sc-toggle>
+                <sc-number
+                  value="${this.transport.get('preRollDuration')}"
+                  @change="${e => this.transport.set({ preRollDuration: e.detail.value })}"
+                ></sc-number>
+              </div>
             </div>
           ` : nothing
         }

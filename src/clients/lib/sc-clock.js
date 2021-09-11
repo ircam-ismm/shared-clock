@@ -1,6 +1,6 @@
 // @note - to be integrated in sc-components when nice
 
-import { LitElement, css, html, svg } from 'lit-element';
+import { LitElement, css, html, svg, nothing } from 'lit-element';
 
 
 function padLeft(value, char, length) {
@@ -30,7 +30,7 @@ function getFormattedTimeInfos(time) {   // [-][hh:]mm:ss
     const secFrac = Math.abs(time) - timeInSeconds; // fractional seconds (not used)
     const milliseconds = padLeft(Math.floor(secFrac * 1000), '0', 3);
 
-    return { hours, minutes, seconds, milliseconds };
+    return { sign, hours, minutes, seconds, milliseconds };
 }
 
 class ScClock extends LitElement {
@@ -81,14 +81,14 @@ class ScClock extends LitElement {
   render() {
     const now = this.getTimeFunction();
     const time = Number.isFinite(now) ? now : 0;
-    const { hours, minutes, seconds, milliseconds } = getFormattedTimeInfos(time);
+    const { sign, hours, minutes, seconds, milliseconds } = getFormattedTimeInfos(time);
 
-    const millis = parseInt(milliseconds);
-
+    const millis = parseInt(milliseconds) / 1000;
     let visibility = 'visible';
     if (this.twinkle && millis >= this.twinkle[0] && millis < this.twinkle[1]) {
       visibility = 'hidden';
     }
+
     // 0 is always visible (weird on stop)
     if (millis === 0) {
       visibility = 'visible';
@@ -106,7 +106,8 @@ class ScClock extends LitElement {
         font-size: ${this.fontSize}px;
         opacity: ${opacity};
       ">
-           <span>${hours}</span><!--
+           ${sign ? html`<span>${sign}</span>` : nothing}<!--
+        --><span>${hours}</span><!--
         --><span style="visibility: ${visibility};">:</span><!--
         --><span>${minutes}</span><!--
         --><span style="visibility: ${visibility};">:</span><!--
@@ -123,7 +124,6 @@ class ScClock extends LitElement {
   }
 
   connectedCallback() {
-    console.log(this.twinkle);
     super.connectedCallback();
     this._render();
   }
