@@ -98,6 +98,7 @@ class ScClock extends LitElement {
 
     // the html comments are weird, but prevent the browser to display spaces
     // between the <span>
+      if (0) { // full clock hh:mm:ss:msec
     return html`
       <div style="
         width: ${this.width}px;
@@ -115,7 +116,22 @@ class ScClock extends LitElement {
         --><span style="visibility: ${visibility};">:</span><!--
         --><span>${milliseconds}</span>
       </div>
+    ` } else { // hh:mm
+     return html`
+      <div style="
+        width: ${this.width}px;
+        height: ${this.height}px;
+        line-height: ${this.height}px;
+        font-size: ${this.fontSize}px;
+        opacity: ${opacity};
+      ">
+           ${sign ? html`<span>${sign}</span>` : nothing}<!--
+        --><span>${minutes}</span><!--
+        --><span style="visibility: ${visibility};">:</span><!--
+        --><span>${seconds}</span>
+      </div>
     `
+      }
   }
 
   _render() {
