@@ -24,13 +24,17 @@ function getFormattedTimeInfos(time) {   // [-][hh:]mm:ss
       timeInSeconds = Math.abs(Math.ceil(time));
     }
 
-    const hours = padLeft(Math.floor(timeInSeconds / 3600), '0', 2);
-    const minutes = padLeft(Math.floor((timeInSeconds - (hours * 3600)) / 60), '0', 2);
-    const seconds = padLeft(timeInSeconds - (hours * 3600) - (minutes * 60), '0', 2);
-    const secFrac = Math.abs(time) - timeInSeconds; // fractional seconds (not used)
-    const milliseconds = padLeft(Math.floor(secFrac * 1000), '0', 3);
+    const hours        = Math.floor(timeInSeconds / 3600);
+    const minutes      = Math.floor((timeInSeconds - (hours * 3600)) / 60);
+    const seconds      = timeInSeconds - (hours * 3600) - (minutes * 60);
+    const secondsFrac  = Math.abs(time) - timeInSeconds; // fractional seconds (not used)
+    const milliseconds = Math.floor(secondsFrac * 1000);
 
-    return { sign, hours, minutes, seconds, milliseconds };
+    return { sign,
+	     hours       : padLeft(hours, 	 '0', 2),
+	     minutes     : padLeft(minutes,      '0', 2),
+	     seconds     : padLeft(seconds,      '0', 2),
+	     milliseconds: padLeft(milliseconds, '0', 3) };
 }
 
 class ScClock extends LitElement {
