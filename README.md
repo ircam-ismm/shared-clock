@@ -8,6 +8,8 @@ npm install
 npm run dev
 ```
 
+Then open `http://127.0.0.1:8000` for display or  `http://127.0.0.1:8000/#controller` with controls.
+
 ## Run in production mode (port 80)
 
 ```
@@ -21,19 +23,19 @@ sudo PORT=80 npm run start
 
 ## Todos
 
-[x] re-implement pre-roll
-[x] component for clock display
+- [x] re-implement pre-roll
+- [x] component for clock display
 
 ### controls
 
-[ ] seek: two editable number boxes with up/down buttons (min, sec)
-[ ] only start / stop ?
+- [ ] seek: two editable number boxes with up/down buttons (min, sec)
+- [ ] only start / stop ?
 
 ### scores 
 
-[ ] define some kind of score (cue, jump)
-[ ] allow several different score
-[ ] online edit score client
+- [ ] online edit score client
+- [ ] define some kind of score (cue, jump)
+- [ ] allow several different score
 
 ## License
 
