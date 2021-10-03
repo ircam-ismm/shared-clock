@@ -73,7 +73,7 @@ class PlayerExperience extends AbstractExperience {
               const preRollPosition = this.preRoll.getPositionAtTime(now);
               const preRollDuration = this.transport.get('preRollDuration');
               return (preRollPosition !== 0 && preRollPosition !== Infinity) ?
-                preRollDuration - preRollPosition + 1 : 0
+                -(preRollDuration - preRollPosition + 1) : 0
             }}"
             font-size="20"
             twinkle="[0, 0.5]"
