@@ -17,7 +17,7 @@ Thumbs.db
 
 dns/bin
 dns/log
-dns/dnsmasq
+#dns/dnsmasq
 dns/dnsmasq.leases
 log
 

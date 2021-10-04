@@ -1,0 +1,3 @@
+[submodule "dns/dnsmasq"]
+	path = dns/dnsmasq
+	url = https://github.com/imp/dnsmasq.git

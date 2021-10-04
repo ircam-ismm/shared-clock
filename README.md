@@ -40,3 +40,18 @@ sudo PORT=80 npm run start
 ## License
 
 BSD-3-Clause
+
+
+
+## Full Network Startup
+
+1. connect Unify AP
+2. set network location: unify (IP manual addr 10.10.0.1, subnet mask 255.255.0.0)
+3. start dns
+   ```
+   cd dns && ./DNS_run.command
+   ```
+4. start server
+   ```
+   sudo PORT=80 npm run start
+   ```
