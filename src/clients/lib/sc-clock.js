@@ -48,7 +48,10 @@ class ScClock extends LitElement {
     }
   }
   static get styles() {
-    return css`
+      let grey = 0; // clock box background greylevel, was: 106
+      let bgcolor = css`rgb(${grey}, ${grey}, ${grey})`;
+	
+      return css`
       :host {
         vertical-align: top;
         display: inline-block;
@@ -61,8 +64,8 @@ class ScClock extends LitElement {
         vertical-align: middle;
         text-align: center;
         box-sizing: border-box;
-        background-color: rgb(106, 106, 105);
-        border: 1px solid rgb(106, 106, 105);
+        background-color: ${bgcolor};
+        border: 1px solid ${bgcolor};
         color: white;
         font-family: Consolas, monaco, monospace;
         border-radius: 2px;
@@ -98,6 +101,7 @@ class ScClock extends LitElement {
       visibility = 'visible';
     }
 
+    // dim when stopped (time === 0) by reducing opacity
     const opacity = time === 0 ? 0.3 : 1;
 
     // the html comments are weird, but prevent the browser to display spaces
