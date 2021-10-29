@@ -75,7 +75,7 @@ class PlayerExperience extends AbstractExperience {
               return (preRollPosition !== 0 && preRollPosition !== Infinity) ?
                 -(preRollDuration - preRollPosition + 1) : 0
             }}"
-            font-size="20"
+            font-size="40"
             twinkle="[0, 0.5]"
             width="${width}"
           ></sc-clock>
@@ -85,7 +85,7 @@ class PlayerExperience extends AbstractExperience {
               const now = this.sync.getSyncTime();
               return this.clock.getPositionAtTime(now);
             }}"
-            font-size="20"
+            font-size="60"
             twinkle="[0.5, 1]"
             width="${width}"
           ></sc-clock>
