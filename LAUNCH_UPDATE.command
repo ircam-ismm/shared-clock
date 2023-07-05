@@ -5,7 +5,7 @@ cd "$( dirname "$0" )" || (echo "no dir: ${0}"; exit 1)
 
 echo "get sources"
 git stash
-git pull origin main
+git pull origin v3
 
 echo "install"
 rm -Rf node_modules
