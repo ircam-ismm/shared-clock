@@ -107,5 +107,11 @@ sc-clock {
 
   & .play-stop-controls {
     margin-bottom: 20px;
+
+    sc-button {
+      padding-bottom: 4px;
+      height: 40px;
+      font-size: 16px;
+    }
   }
 }
