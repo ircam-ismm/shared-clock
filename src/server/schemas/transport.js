@@ -4,12 +4,16 @@ export default {
     default: 'stop',
     filterChange: false, // we want to be able to seek as many time as we want
   },
+  mtcApplyAt: {
+    type: 'float',
+    event: true,
+  },
   seekPosition: {
     type: 'float',
     default: 0,
     filterChange: false,
   },
-  clockEvent: {
+  clockEvents: {
     type: 'any',
     default: null,
     nullable: true,
@@ -20,7 +24,7 @@ export default {
   },
   preRollDuration: {
     type: 'float',
-    default: 10,
+    default: 4,
     min: 0,
   },
   preRollEvents: {
@@ -28,4 +32,23 @@ export default {
     default: null,
     nullable: true,
   },
+  loopStart: {
+    type: 'float',
+    default: 0,
+  },
+  loopEnd: {
+    type: 'float',
+    default: 0,
+  },
+  loop: {
+    type: 'boolean',
+    default: false,
+  },
+
+  // store transport current state and scheduled events
+  transportState: {
+    type: 'any',
+    default: {},
+  },
 };
+

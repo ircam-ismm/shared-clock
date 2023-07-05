@@ -1,128 +1,181 @@
-import 'source-map-support/register';
-import { Server } from '@soundworks/core/server';
-import path from 'path';
-import serveStatic from 'serve-static';
-import compile from 'template-literal';
+import '@soundworks/helpers/polyfills.js';
+import { Server } from '@soundworks/core/server.js';
 
-import pluginSyncFactory from '@soundworks/plugin-sync/server';
+import { Scheduler, Transport } from '@ircam/sc-scheduling';
+import pluginSync from '@soundworks/plugin-sync/server.js';
 
-import PlayerExperience from './PlayerExperience.js';
+import { loadConfig } from '../utils/load-config.js';
+import '../utils/catch-unhandled-errors.js';
+import transportSchema from './schemas/transport.js';
 
-import { TransportEventQueue } from '../lib/transportedMixin.js';
+// - General documentation: https://soundworks.dev/
+// - API documentation:     https://soundworks.dev/api
+// - Issue Tracker:         https://github.com/collective-soundworks/soundworks/issues
+// - Wizard & Tools:        `npx soundworks`
 
-import transport from './schemas/transport.js';
-
-import getConfig from '../utils/getConfig.js';
-const ENV = process.env.ENV || 'default';
-const config = getConfig(ENV);
-const server = new Server();
-
-// html template and static files (in most case, this should not be modified)
-server.templateEngine = { compile };
-server.templateDirectory = path.join('.build', 'server', 'tmpl');
-server.router.use(serveStatic('public'));
-server.router.use('build', serveStatic(path.join('.build', 'public')));
-server.router.use('vendors', serveStatic(path.join('.vendors', 'public')));
+const config = loadConfig(process.env.ENV, import.meta.url);
 
 console.log(`
 --------------------------------------------------------
-- launching "${config.app.name}" in "${ENV}" environment
+- launching "${config.app.name}" in "${process.env.ENV || 'default'}" environment
 - [pid: ${process.pid}]
 --------------------------------------------------------
 `);
 
-// -------------------------------------------------------------------
-// register plugins
-// -------------------------------------------------------------------
-server.pluginManager.register('sync', pluginSyncFactory, {}, []);
+/**
+ * Create the soundworks server
+ */
+const server = new Server(config);
+// configure the server for usage within this application template
+server.useDefaultApplicationTemplate();
 
-// -------------------------------------------------------------------
-// register schemas
-// -------------------------------------------------------------------
-server.stateManager.registerSchema('transport', transport);
+/**
+ * Register plugins and schemas
+ */
+server.pluginManager.register('sync', pluginSync);
 
+server.stateManager.registerSchema('transport', transportSchema);
 
-(async function launch() {
-  try {
-    await server.init(config, (clientType, config, httpRequest) => {
-      return {
-        clientType: clientType,
-        app: {
-          name: config.app.name,
-          author: config.app.author,
-        },
-        env: {
-          type: config.env.type,
-          websockets: config.env.websockets,
-          subpath: config.env.subpath,
-        }
-      };
-    });
+/**
+ * Launch application (init plugins, http server, etc.)
+ */
+await server.start();
 
-    const transport = await server.stateManager.create('transport');
-    const sync = server.pluginManager.get('sync');
-    const clockEventQueue = new TransportEventQueue();
-    const preRollEventQueue = new TransportEventQueue();
+const sync = await server.pluginManager.get('sync');
+const getTimeFunction = () => sync.getSyncTime();
+const scheduler = new Scheduler(getTimeFunction);
+const transport = new Transport(scheduler);
 
-    server.stateManager.registerUpdateHook('transport', (updates, currentValues) => {
-      if (updates.command) {
-        const { command } = updates;
-        const { enablePreRoll, preRollDuration } = currentValues;
-        const applyAt = sync.getSyncTime() + 0.1;
+const transportState = await server.stateManager.create('transport', {
+  transportState: transport.getState(),
+});
 
-        const event = {
-          type: command,
-          time: applyAt,
-        };
+const engine = {
+  onTransportEvent(event, position, currentTime, dt) {
+    const state = transport.getState();
+    transportState.set({ transportState: state });
 
-        if (command === 'start') {
-          if (enablePreRoll) {
-            event.time += preRollDuration;
-          }
-        } else if (command === 'seek') {
-          event.position = updates.seekPosition || currentValues.seekPosition;
-        }
-
-        const computedEvent = clockEventQueue.add(event);
-        // we really don't want to store null events as it breaks clients on reload
-        if (computedEvent !== null) {
-          updates.clockEvent = computedEvent;
-        }
-
-        if (computedEvent !== null && enablePreRoll && command === 'start') {
-          const events = [
-            {
-              type: 'start',
-              time: applyAt,
-            }, {
-              type: 'stop',
-              time: applyAt + preRollDuration,
-            }
-          ];
-
-          updates.preRollEvents = events.map(e => preRollEventQueue.add(e));
-        } else {
-          updates.preRollEvents = null;
-        }
-
-      }
-
-      return updates;
-    });
-
-
-    const playerExperience = new PlayerExperience(server, 'player');
-
-    // start all the things
-    await server.start();
-    playerExperience.start();
-
-  } catch (err) {
-    console.error(err.stack);
+    return event.speed > 0 ? position : Infinity;
+  },
+  advanceTime(position, currentTime, dt) {
+  //   console.log(position, currentTime, dt);
+     return position + 0.25;
   }
-})();
+};
 
-process.on('unhandledRejection', (reason, p) => {
-  console.log('> Unhandled Promise Rejection');
-  console.log(reason);
+transport.add(engine);
+
+// apply events on
+transportState.onUpdate(updates => {
+  if (updates.clockEvents) {
+    updates.clockEvents.map(event => transport.addEvent(event));
+  }
+});
+
+server.stateManager.registerUpdateHook('transport', (updates, currentValues) => {
+  if (updates.command) {
+    const { command, mtcApplyAt } = updates;
+    const { enablePreRoll, preRollDuration } = currentValues;
+
+    let applyAt;
+
+    // console.log(mtcApplyAt);
+    if (mtcApplyAt === undefined) {
+      applyAt = sync.getSyncTime() + 0.1;
+    } else {
+      applyAt = mtcApplyAt;
+    }
+
+    const clockEvents = [
+      {
+        type: 'cancel',
+        time: applyAt,
+      },
+    ];
+
+    switch (command) {
+      case 'start':
+        clockEvents.push({
+          type: 'play',
+          time: enablePreRoll ? applyAt + preRollDuration : applyAt,
+        });
+        break;
+      case 'stop':
+        clockEvents.push({
+          type: 'pause',
+          time: applyAt,
+        });
+        clockEvents.push({
+          type: 'seek',
+          time: applyAt,
+          position: 0,
+        });
+        break;
+      case 'pause':
+        clockEvents.push({
+          type: 'pause',
+          time: applyAt,
+        });
+        break;
+      case 'seek':
+        clockEvents.push({
+          type: 'seek',
+          time: applyAt,
+          position: updates.seekPosition || currentValues.seekPosition,
+        });
+        break;
+      case 'loop':
+        clockEvents.push({
+          type: 'loop',
+          time: applyAt,
+          loop: updates.loop,
+        });
+        break;
+    }
+
+    const preRollEvents = [{
+      type: 'cancel',
+      time: applyAt,
+    }];
+
+    if (enablePreRoll && clockEvents.length > 0) {
+      if (command === 'start') {
+        preRollEvents.push({
+          type: 'seek',
+          time: applyAt,
+          position: -1 * (preRollDuration + 1),
+        })
+        preRollEvents.push({
+          type: 'play',
+          time: applyAt,
+        });
+        preRollEvents.push({
+          type: 'pause',
+          time: applyAt + preRollDuration,
+        });
+        preRollEvents.push({
+          type: 'seek',
+          time: applyAt + preRollDuration,
+          position: 0,
+        });
+      } else {
+        // for seek, pause and stop, we want to stop the playroll now
+        preRollEvents.push({
+          type: 'pause',
+          time: applyAt,
+        });
+        preRollEvents.push({
+          type: 'seek',
+          time: applyAt,
+          position: 0,
+        });
+      }
+    }
+
+    return {
+      ...updates,
+      clockEvents,
+      preRollEvents,
+    };
+  }
 });
