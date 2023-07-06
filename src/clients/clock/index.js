@@ -83,11 +83,13 @@ async function main($container) {
         <div>
           <sc-clock
             .getTimeFunction=${() => preRoll.getPositionAtTime(sync.getSyncTime())}
-            twinkle
+            format="hh:mm:ss"
+            ?twinkle=${false}
           ></sc-clock>
           <sc-clock
             .getTimeFunction=${() => clock.getPositionAtTime(sync.getSyncTime())}
-            twinkle
+            format="hh:mm:ss"
+            ?twinkle=${false}
           ></sc-clock>
         </div>
 
